@@ -2,16 +2,15 @@ package de.sabartius.quarkus.jaxb;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 
+import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import javax.ws.rs.client.ClientBuilder;
-
 import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 
 class MyClientWrapperWithoutQuarkusTest {
 
@@ -19,10 +18,10 @@ class MyClientWrapperWithoutQuarkusTest {
 
     @BeforeEach
     void setUp() {
-        wireMockServer = new WireMockServer();
+        wireMockServer = new WireMockServer(WireMockConfiguration.options().dynamicPort());
         wireMockServer.start();
 
-        stubFor(get(urlMatching("/online/rest/queue"))
+        wireMockServer.stubFor(get(urlMatching("/online/rest/queue"))
             .willReturn(ok()
                 .withHeader("Content-Type", "application/xml")
                 .withBodyFile("xml/queue.xml")));
@@ -35,6 +34,6 @@ class MyClientWrapperWithoutQuarkusTest {
 
     @Test
     void itWorks() {
-        new MyClientWrapper(ClientBuilder.newClient().target(wireMockServer.baseUrl() + "/online")).getMyData();
+        new MyClientWrapper(ResteasyClientBuilder.newClient().target(wireMockServer.baseUrl() + "/online")).getMyData();
     }
 }
